@@ -129,7 +129,7 @@ type TradeQueryRes struct {
 }
 
 /**
- * 微信查询订单
+ * 微信关闭订单
  */
 type TradeClose struct {
 	OutTradeNo string //商户订单号

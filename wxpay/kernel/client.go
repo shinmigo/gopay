@@ -31,7 +31,7 @@ type WxClient struct {
 /**
  * 初始化微信支付参数
  */
-func NewClient(appId, mchId, md5Key string, isProd bool) *WxClient {
+func NewWxClient(appId, mchId, md5Key string, isProd bool) *WxClient {
 	client := &WxClient{
 		appId:       appId,
 		mchId:       mchId,
