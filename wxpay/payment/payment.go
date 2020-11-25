@@ -2,7 +2,8 @@ package payment
 
 import (
 	"encoding/xml"
-
+	"net/url"
+	
 	"github.com/shinmigo/gopay/wxpay/kernel"
 )
 
@@ -17,8 +18,16 @@ func (m *Payment) Pay(param *Trade) (result *TradeRes, err error) {
 	if param == nil {
 		return nil, nil
 	}
-
+	
 	err = m.Client.SendRequest("POST", "pay/unifiedorder", param, &result)
+	return
+}
+
+func (m *Payment) Jsapi(param *TradeRes) (result url.Values) {
+	if param == nil {
+		return nil
+	}
+	result = m.Client.Jsapi("MD5", param.PrepayId, param.NonceStr)
 	return
 }
 
@@ -29,7 +38,7 @@ func (m *Payment) Query(param *TradeQuery) (result *TradeQueryRes, err error) {
 	if param == nil {
 		return nil, nil
 	}
-
+	
 	err = m.Client.SendRequest("POST", "pay/orderquery", param, &result)
 	return
 }
@@ -41,7 +50,7 @@ func (m *Payment) Close(param *TradeClose) (result *TradeCloseRes, err error) {
 	if param == nil {
 		return nil, nil
 	}
-
+	
 	err = m.Client.SendRequest("POST", "pay/closeorder", param, &result)
 	return
 }
@@ -54,7 +63,7 @@ func (m *Payment) NotifyVerify(reqBody []byte) (res *NotifyRes, err error) {
 	if err != nil {
 		return nil, err
 	}
-
+	
 	err = xml.Unmarshal(reqBody, &res)
 	return res, err
 }

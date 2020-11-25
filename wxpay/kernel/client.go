@@ -6,11 +6,13 @@ import (
 	"encoding/hex"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -42,7 +44,7 @@ func NewWxClient(appId, mchId, md5Key string, isProd bool) *WxClient {
 	if isProd {
 		client.gatewayHost = "https://api.mch.weixin.qq.com/"
 	}
-
+	
 	return client
 }
 
@@ -75,7 +77,20 @@ func (m *WxClient) SendRequest(method string, url string, param WXPayParam, resu
 		return err
 	}
 	err = xml.Unmarshal(responseByte, result)
+	
+	return
+}
 
+func (m *WxClient) Jsapi(signType, prepayId, nonceStr string) (param url.Values) {
+	timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
+	param = url.Values{}
+	param.Set("appId", m.appId)
+	param.Set("timeStamp", timeStamp)
+	param.Set("signType", signType)
+	param.Set("package", fmt.Sprintf("prepay_id=%s", prepayId))
+	param.Set("nonceStr", nonceStr)
+	param.Set("paySign", m.sign(param))
+	
 	return
 }
 
@@ -88,7 +103,7 @@ func (m *WxClient) UrlParams(param WXPayParam) (requestParam url.Values) {
 	requestParam.Set("mch_id", m.mchId)
 	requestParam.Set("nonce_str", getNonceStr())
 	requestParam.Set("sign", m.sign(requestParam))
-
+	
 	return
 }
 
@@ -101,7 +116,7 @@ func (m *WxClient) VerifySign(data []byte) (err error) {
 	if err != nil {
 		return err
 	}
-
+	
 	returnCode := xmlHandler.Get("return_code")
 	if returnCode == "" {
 		return errors.New("解析失败！")
@@ -116,7 +131,7 @@ func (m *WxClient) VerifySign(data []byte) (err error) {
 	if returnCode == "FAIL" {
 		return errors.New(xmlHandler.Get("err_code_des"))
 	}
-
+	
 	srcSign := xmlHandler.Get("sign")
 	if srcSign == "" {
 		return errors.New("解析失败！")
@@ -126,7 +141,7 @@ func (m *WxClient) VerifySign(data []byte) (err error) {
 	if srcSign == generateSign {
 		return nil
 	}
-
+	
 	return errors.New("签名验证失败")
 }
 
@@ -140,7 +155,7 @@ func (m *WxClient) sign(params url.Values) string {
 		if len(paramValue) == 0 {
 			continue
 		}
-
+		
 		paramValue = strings.TrimSpace(paramValue)
 		paramList = append(paramList, paramKey+"="+paramValue)
 	}
@@ -149,11 +164,11 @@ func (m *WxClient) sign(params url.Values) string {
 		paramList = append(paramList, "key="+m.md5Key)
 	}
 	requestParam := strings.Join(paramList, "&")
-
+	
 	md5Handler := md5.New()
 	md5Handler.Write([]byte(requestParam))
 	hashByte := md5Handler.Sum(nil)
-
+	
 	return strings.ToUpper(hex.EncodeToString(hashByte))
 }
 
@@ -163,13 +178,13 @@ func (m *WxClient) sign(params url.Values) string {
 func getNonceStr() string {
 	srcStr := "abcdefghijklmnopqrstuvwxyz0123456789"
 	srcStrLen := len(srcStr) - 1
-
+	
 	buffer := bytes.Buffer{}
 	randHandler := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < 32; i++ {
 		index := randHandler.Intn(srcStrLen)
 		buffer.WriteString(srcStr[index : index+1])
 	}
-
+	
 	return buffer.String()
 }

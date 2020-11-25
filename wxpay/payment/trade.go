@@ -57,7 +57,7 @@ func (m *Trade) Params() url.Values {
 	paramMap.Set("limit_pay", m.LimitPay)
 	paramMap.Set("openid", m.OpenId)
 	paramMap.Set("sign_type", "MD5")
-
+	
 	return paramMap
 }
 
@@ -93,7 +93,7 @@ func (m *TradeQuery) Params() url.Values {
 	paramMap := url.Values{}
 	paramMap.Set("transaction_id", m.TransactionId)
 	paramMap.Set("out_trade_no", m.OutTradeNo)
-
+	
 	return paramMap
 }
 
@@ -138,7 +138,7 @@ type TradeClose struct {
 func (m *TradeClose) Params() url.Values {
 	paramMap := url.Values{}
 	paramMap.Set("out_trade_no", m.OutTradeNo)
-
+	
 	return paramMap
 }
 
